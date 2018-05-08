@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
+import './Tile.css';
 
 export default class Tile extends Component {
     tileClick(props){
-        props.updateBoard(props.loc, props.turn);
         props.gameLoop(props.loc, props.turn);
     }
     
