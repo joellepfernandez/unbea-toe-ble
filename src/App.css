@@ -23,7 +23,7 @@
   to { transform: rotate(360deg); }
 }
 
-.board {
+.gameBoard {
   display: flex;
   width: 600px;
   height: 600px;

@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
 import './App.css';
+import Announcement from './Annoucement.jsx';
+import ResetButton from './ResetButton.jsx';
+import Tile from './Tile.jsx';
 
 class App extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      board: [
+      gameBoard: [
         "", "", "", "", "", "", "", "", ""
       ],
       currentTurn: "X",
@@ -55,6 +58,14 @@ class App extends Component {
   //     }
   //   });
   // }
+  
+  tie(board){
+    var moves = board.join('').replace(/ /g, '');
+    if(moves.length === 9){
+      return true;
+    }
+    return false;
+  }
 
   winner(board, player){
   if (
@@ -106,19 +117,117 @@ class App extends Component {
     return move;
   }
   
+  minScore(board){
+    if(this.winner(board, 'X')){
+      return 10;
+    } else if(this.winner(board, 'O')){
+      return -10;
+    } else if(this.tie(board)){
+      return 0;
+    } else {
+      var bestMoveValue = 100;
+      for(let i = 0; i < board.length; i++){
+        var newBoard = this.validBoard(i, this.state.minPlayer, board);
+        if(newBoard){
+          var predictMoveValue = this.maxScore(newBoard);
+          if(predictMoveValue < bestMoveValue){
+            bestMoveValue = predictMoveValue;
+          }
+        }
+      }
+      return bestMoveValue;
+    }
+  }
+  
+  maxScore(board){
+    if(this.winner(board, 'X')){
+      return 10;
+    } else if(this.winner(board, 'O')){
+      return -10;
+    } else if(this.tie(board)){
+      return 0;
+    } else {
+      var bestMoveValue = -100;
+      for(let i = 0; i < board.length; i++){
+        var newBoard = this.validBoard(i, this.state.maxPlayer, board);
+        if(newBoard){
+          var predictMoveValue = this.minScore(newBoard);
+          if(predictMoveValue > bestMoveValue){
+            bestMoveValue = predictMoveValue;
+          }
+        }
+      }
+      return bestMoveValue;
+    }
+  }
+  
+  gameLoop(move){
+    let player = this.state.turn;
+    let currentGameBoard = this.validMove(move, player, this.state.gameBoard);
+    if(this.winner(currentGameBoard, player)){
+      this.setState({
+        gameBoard: currentGameBoard,
+        winner: player
+      });
+      return;
+    }
+    if(this.tie(currentGameBoard)){
+      this.setState({
+        gameBoard: currentGameBoard,
+        winner: 'd'
+      });
+      return;
+    }
+    player = 'O';
+    currentGameBoard = this.validMove(this.findAiMove(currentGameBoard), player, currentGameBoard);
+    if(this.winner(currentGameBoard, player)){
+      this.setState({
+        gameBoard: currentGameBoard,
+        winner: player //player already set to 'O'
+      });
+      return;      
+    }
+    if(this.tie(currentGameBoard)){
+      this.setState({
+        gameBoard: currentGameBoard,
+        winner: 'd'
+      });
+      return;
+    }
+    this.setState({
+      gameBoard: currentGameBoard
+    });
+  }
+  
   render() {
     return (
       <div className="app-container">
+      <div className="menu">
+        <ResetButton />
+      </div>
       <h1>Unbea-TOE-ble</h1>
+      <Announcement /> //class
+      
         {this.state.winner ? <h1>{`The winner is ${this.state.winner}`}</h1> : null}
-        <div className="board">
-        {this.state.board.map((cell, index) => {
-          return <div onClick={() => this.handleClick(index)} className="square">{cell}</div>;
+        // map the state to return a tile
+        {this.state.gameBoard.map((value, i)=>{
+          return (
+            <Tile
+              key={1}
+              loc={1}
+              value={value}
+              gameLoop={this.gameLoop.bind(this)}/>
+          );
         })}
-        </div>
       </div>
     );
   }
 }
 
 export default App;
+
+        // <div className="board">
+        // {this.state.board.map((cell, index) => {
+        //   return <div onClick={() => this.handleClick(index)} className="square">{cell}</div>;
+        // })}
+        // </div>
